@@ -26,7 +26,9 @@ public class Hl7Controller {
         try {
             return hl7Service.parse(body.message());
         } catch (HL7Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "HL7 parse error: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "HL7 parse error: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "HL7 parse error: " + e.getMessage(), e);
         }
     }
 

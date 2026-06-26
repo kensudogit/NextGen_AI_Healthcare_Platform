@@ -1,11 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { api } from "@/lib/api";
 
 export default function Hl7Page() {
   const [message, setMessage] = useState(
-    "MSH|^~\\&|NGHEALTH|SEND|NGHEALTH|RECV|20260626120000||ADT^A01|1|P\nPID|1||MRN-10001^^^NG||田中^太郎"
+    "MSH|^~\\&|NGHEALTH|SEND|NGHEALTH|RECV|20260626120000||ADT^A01|1|P\rPID|1||MRN-10001^^^NG||田中^太郎"
   );
   const [result, setResult] = useState("");
   const [err, setErr] = useState("");
@@ -16,10 +15,16 @@ export default function Hl7Page() {
     setBusy(true);
     setErr("");
     try {
-      const data = await api<Record<string, unknown>>("/api/hl7/parse", {
+      const res = await fetch("/api/hl7/parse", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      const data = JSON.parse(text) as Record<string, unknown>;
       setResult(JSON.stringify(data, null, 2));
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : "Error");
@@ -32,8 +37,9 @@ export default function Hl7Page() {
     setBusy(true);
     setErr("");
     try {
-      const data = await api<{ message: string }>("/api/hl7/build", {
+      const res = await fetch("/api/hl7/build", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "ADT",
           mrn: "MRN-10001",
@@ -41,6 +47,11 @@ export default function Hl7Page() {
           givenName: "太郎",
         }),
       });
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      const data = JSON.parse(text) as { message: string };
       setMessage(data.message);
       setResult("ADT^A01 メッセージを生成しました");
     } catch (ex) {
