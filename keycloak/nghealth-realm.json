@@ -1,0 +1,40 @@
+{
+  "realm": "nghealth",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      { "name": "staff", "description": "Hospital staff" },
+      { "name": "admin", "description": "Administrator" }
+    ]
+  },
+  "users": [
+    {
+      "username": "staff",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Staff",
+      "lastName": "User",
+      "email": "staff@nextgen.health",
+      "credentials": [{ "type": "password", "value": "staff123", "temporary": false }],
+      "realmRoles": ["staff"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "nghealth-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "redirectUris": ["http://localhost:3010/*"],
+      "webOrigins": ["http://localhost:3010"]
+    },
+    {
+      "clientId": "nghealth-api",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false
+    }
+  ]
+}

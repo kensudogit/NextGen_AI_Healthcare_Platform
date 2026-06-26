@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nghealth
+      POSTGRES_PASSWORD: nghealth_dev
+      POSTGRES_DB: nghealth
+    ports:
+      - "5436:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nghealth"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/nghealth-realm.json:/opt/keycloak/data/import/nghealth-realm.json
+
+  localstack:
+    image: localstack/localstack:4.0
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: s3
+      DEFAULT_REGION: ap-northeast-1
+    volumes:
+      - localstack_data:/var/lib/localstack
+
+  backend:
+    build: ./backend
+    ports:
+      - "8010:8010"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/nghealth
+      DATABASE_USER: nghealth
+      DATABASE_PASSWORD: nghealth_dev
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CORS_ORIGINS: http://localhost:3010
+      OAUTH_ENABLED: ${OAUTH_ENABLED:-false}
+      OAUTH2_ISSUER_URI: ${OAUTH2_ISSUER_URI:-}
+      STORAGE_USE_S3: ${STORAGE_USE_S3:-false}
+      AWS_ENDPOINT: http://localstack:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_REGION: ap-northeast-1
+      AWS_S3_BUCKET: nghealth-dicom
+      FHIR_BASE_URL: http://localhost:8010/fhir/R4
+    volumes:
+      - dicom_storage:/app/storage/dicom
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3010:3010"
+    environment:
+      INTERNAL_API_URL: http://backend:8010
+      NEXT_PUBLIC_API_URL: http://localhost:8010
+      NEXT_PUBLIC_OAUTH_ENABLED: ${OAUTH_ENABLED:-false}
+      NEXT_PUBLIC_KEYCLOAK_URL: ${NEXT_PUBLIC_KEYCLOAK_URL:-http://localhost:8080}
+      NEXT_PUBLIC_KEYCLOAK_REALM: nghealth
+      NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: nghealth-frontend
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  dicom_storage:
+  localstack_data:

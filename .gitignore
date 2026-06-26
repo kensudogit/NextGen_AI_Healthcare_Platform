@@ -1,0 +1,32 @@
+# Environment
+.env
+.env.local
+
+# Java / Maven
+backend/target/
+*.jar
+*.war
+*.class
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+npm-debug.log*
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Storage (runtime data)
+storage/
+backend/storage/
+
+# Docker volumes (local)
+pgdata/
