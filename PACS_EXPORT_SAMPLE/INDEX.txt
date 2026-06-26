@@ -1,0 +1,11 @@
+PACS_EXPORT_SAMPLE
+Educational anonymized sample dataset
+
+Patient: 00000001 Yamada^Taro
+  Study: 20240520 Chest CT Follow-up
+    Series 1: Chest CT Axial (CT) images=8
+    Series 2: Chest CT Coronal Derived (CT) images=4
+    Series 3: 3D Rendering Secondary Capture (OT) images=2
+Patient: 00000002 Sato^Hanako
+  Study: 20240518 Chest Radiography
+    Series 1: Chest CR (CR) images=2
