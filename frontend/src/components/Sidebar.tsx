@@ -34,7 +34,7 @@ export default function Sidebar() {
       </nav>
       <LoginBar />
       <div style={{ marginTop: "1rem", fontSize: "0.75rem", color: "var(--muted)" }}>
-        <a href="http://localhost:8010/swagger-ui.html" target="_blank" rel="noreferrer">
+        <a href="/swagger-ui.html" target="_blank" rel="noreferrer">
           API Docs ↗
         </a>
       </div>

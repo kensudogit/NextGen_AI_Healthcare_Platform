@@ -57,7 +57,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
         {p.name}
       </h1>
       <p className="page-desc">
-        MRN: {p.mrn} · FHIR: <a href={`http://localhost:8010${p.fhir_url}`}>{p.fhir_url}</a>
+        MRN: {p.mrn} · FHIR: <a href={p.fhir_url}>{p.fhir_url}</a>
       </p>
 
       <div className="grid grid-2">

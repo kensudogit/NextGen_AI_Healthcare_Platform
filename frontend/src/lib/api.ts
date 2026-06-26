@@ -1,9 +1,16 @@
 import { getAccessToken, oauthEnabled } from "@/lib/auth";
 
-const API_BASE =
-  typeof window === "undefined"
-    ? process.env.INTERNAL_API_URL || "http://backend:8010"
-    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8010";
+/** ブラウザ: 同一オリジン（相対パス） / SSR: 内部 API URL */
+function getApiBase(): string {
+  if (typeof window !== "undefined") {
+    return process.env.NEXT_PUBLIC_API_URL || "";
+  }
+  return (
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://127.0.0.1:8010"
+  );
+}
 
 function authHeaders(init?: RequestInit): HeadersInit {
   const headers: Record<string, string> = {
@@ -18,7 +25,7 @@ function authHeaders(init?: RequestInit): HeadersInit {
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${getApiBase()}${path}`, {
     ...init,
     headers: authHeaders(init),
     cache: "no-store",
@@ -31,11 +38,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function apiUrl(path: string) {
-  const base =
-    typeof window === "undefined"
-      ? process.env.INTERNAL_API_URL || "http://backend:8010"
-      : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8010";
-  const url = `${base}${path}`;
+  const url = `${getApiBase()}${path}`;
   if (oauthEnabled && typeof window !== "undefined") {
     const token = getAccessToken();
     if (token) {
