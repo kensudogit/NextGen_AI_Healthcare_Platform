@@ -88,14 +88,12 @@ Docker 開発環境では LocalStack が S3 をエミュレートします。
 ## Railway デプロイ
 
 1. GitHub リポジトリを Railway に接続
-2. **PostgreSQL** プラグインを追加（`DATABASE_URL` が自動設定されます）
-3. 環境変数（任意）:
-   - `OPENAI_API_KEY`
-   - `CORS_ORIGINS` — フロントエンド URL
-   - `FHIR_BASE_URL` — `https://<your-app>.up.railway.app/fhir/R4`
-4. ルートの `Dockerfile` でバックエンドがビルドされます（`railway.toml` 参照）
+2. **PostgreSQL** プラグインを追加
+3. ルート `Dockerfile` が **フロント + バックエンド + Nginx** を1コンテナで起動
+4. 公開 URL の `/` に職員ダッシュボードが表示されます
+5. 環境変数（任意）: `OPENAI_API_KEY`, `CORS_ORIGINS`, `FHIR_BASE_URL`
 
-フロントエンドは別サービスとして `frontend/Dockerfile` を指定してデプロイしてください。
+**注意:** バックエンド単体（JSONのみ）ではなく、ルート `Dockerfile` でデプロイしてください。
 
 ## レガシー
 
