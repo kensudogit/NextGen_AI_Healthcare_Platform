@@ -1,13 +1,16 @@
 package com.nghealth.platform.web;
 
+import com.nghealth.platform.config.AppProperties;
 import com.nghealth.platform.domain.ImagingStudy;
 import com.nghealth.platform.service.pacs.DicomService;
 import com.nghealth.platform.service.pacs.PacsExportImporter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -19,10 +22,15 @@ public class PacsController {
 
     private final DicomService dicomService;
     private final PacsExportImporter exportImporter;
+    private final AppProperties appProperties;
 
-    public PacsController(DicomService dicomService, PacsExportImporter exportImporter) {
+    public PacsController(
+            DicomService dicomService,
+            PacsExportImporter exportImporter,
+            AppProperties appProperties) {
         this.dicomService = dicomService;
         this.exportImporter = exportImporter;
+        this.appProperties = appProperties;
     }
 
     @GetMapping("/studies")
@@ -40,8 +48,10 @@ public class PacsController {
     public Map<String, Object> importExportFolder(@RequestParam(required = false) String path) throws IOException {
         String target = path;
         if (target == null || target.isBlank()) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "path is required");
+            target = appProperties.storage().pacsExportPath();
+        }
+        if (target == null || target.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "path is required");
         }
         return exportImporter.importFolder(Paths.get(target));
     }

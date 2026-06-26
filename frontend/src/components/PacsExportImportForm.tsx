@@ -2,7 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiUrl } from "@/lib/api";
+
+async function parseResponse(res: Response) {
+  const text = await res.text();
+  if (!text) {
+    return {};
+  }
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new Error(text);
+  }
+}
 
 export function PacsExportImportForm() {
   const router = useRouter();
@@ -15,16 +26,18 @@ export function PacsExportImportForm() {
     setLoading(true);
     setStatus("");
     try {
-      const res = await fetch(apiUrl("/api/pacs/import/export-folder"), {
+      const res = await fetch("/api/pacs/import/export-folder", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ path }),
       });
-      const data = await res.json();
+      const data = await parseResponse(res);
       if (!res.ok) {
-        throw new Error(data.message || data.error || `HTTP ${res.status}`);
+        throw new Error(String(data.message || data.error || `HTTP ${res.status}`));
       }
-      setStatus(`取り込み完了: ${data.imported} 検査 (${data.skipped_existing} 件スキップ)`);
+      setStatus(
+        `取り込み完了: ${data.imported} 検査 (${data.skipped_existing} 件スキップ)`
+      );
       router.refresh();
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "取り込みに失敗しました");

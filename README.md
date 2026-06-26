@@ -91,7 +91,7 @@ Docker 開発環境では LocalStack が S3 をエミュレートします。
 2. **PostgreSQL** プラグインを追加
 3. ルート `Dockerfile` が **フロント + バックエンド + Nginx** を1コンテナで起動
 4. 公開 URL の `/` に職員ダッシュボードが表示されます
-5. 環境変数（任意）: `OPENAI_API_KEY`, `CORS_ORIGINS`, `FHIR_BASE_URL`
+5. 環境変数（任意）: `OPENAI_API_KEY`, `CORS_ORIGINS`, `FHIR_BASE_URL`, `PACS_EXPORT_PATH`
 
 **注意:** バックエンド単体（JSONのみ）ではなく、ルート `Dockerfile` でデプロイしてください。
 

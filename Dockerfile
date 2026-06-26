@@ -30,6 +30,7 @@ COPY --from=backend-build /app/target/platform-api-1.0.0.jar app.jar
 COPY --from=frontend-build /app/.next/standalone ./frontend
 COPY --from=frontend-build /app/.next/static ./frontend/.next/static
 COPY --from=frontend-build /app/public ./frontend/public
+COPY PACS_EXPORT_SAMPLE /app/pacs-export
 
 # Nginx 設定（Dockerfile 内生成 — Railway ビルドで deploy/ 欠落を防止）
 RUN cat > /etc/nginx/nginx.conf.template <<'EOF'
@@ -120,6 +121,7 @@ RUN chmod +x /start.sh
 ENV BACKEND_PORT=8010
 ENV FRONTEND_PORT=3010
 ENV INTERNAL_API_URL=http://127.0.0.1:8010
+ENV PACS_EXPORT_PATH=/app/pacs-export
 ENV PORT=8080
 
 EXPOSE 8080
