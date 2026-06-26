@@ -18,6 +18,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -98,10 +100,60 @@ public class DicomService {
     }
 
     public byte[] getDicomBytes(ImagingStudy study) throws IOException {
-        if (study.getS3Key() != null) {
+        if (study.getS3Key() != null && !study.getS3Key().isBlank()) {
             return storageService.readDicom(study.getS3Key());
         }
-        return storageService.readDicom(study.getFilePath());
+        String filePath = study.getFilePath();
+        if (filePath == null || filePath.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DICOM file not available");
+        }
+        if (!filePath.startsWith("s3://") && !Files.exists(Paths.get(filePath))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DICOM file not found");
+        }
+        return storageService.readDicom(filePath);
+    }
+
+    /** シード等でメタデータのみ存在する検査に DICOM / プレビューを補完 */
+    public void backfillMissingStorage() throws IOException {
+        for (ImagingStudy study : studyRepository.findAll()) {
+            if (hasStoredFile(study)) {
+                continue;
+            }
+            byte[] dicom = SampleDicomGenerator.create(
+                    study.getStudyUid(),
+                    study.getModality(),
+                    study.getBodyPart(),
+                    study.getDescription());
+            String key = "studies/" + study.getStudyUid().replace('.', '_') + ".dcm";
+            String stored = storageService.storeDicom(dicom, key);
+            String previewKey = storageService.previewKey(key);
+            String previewPath = null;
+            byte[] preview = generatePreview(dicom);
+            if (preview != null) {
+                storageService.storePreview(preview, previewKey);
+                previewPath = appProperties.storage().useS3()
+                        ? previewKey
+                        : storageService.localPath(previewKey).toString();
+            }
+            study.setFilePath(stored);
+            study.setPreviewPath(previewPath);
+            study.setS3Key(appProperties.storage().useS3() ? key : null);
+            studyRepository.save(study);
+        }
+    }
+
+    private boolean hasStoredFile(ImagingStudy study) {
+        if (study.getS3Key() != null && !study.getS3Key().isBlank()) {
+            return true;
+        }
+        String filePath = study.getFilePath();
+        if (filePath == null || filePath.isBlank()) {
+            return false;
+        }
+        if (filePath.startsWith("s3://")) {
+            return true;
+        }
+        return Files.exists(Paths.get(filePath));
     }
 
     public byte[] getPreviewBytes(ImagingStudy study) throws IOException {

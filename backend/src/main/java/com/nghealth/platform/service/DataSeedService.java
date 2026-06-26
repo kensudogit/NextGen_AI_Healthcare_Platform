@@ -2,43 +2,60 @@ package com.nghealth.platform.service;
 
 import com.nghealth.platform.domain.*;
 import com.nghealth.platform.repository.*;
+import com.nghealth.platform.service.pacs.DicomService;
+import com.nghealth.platform.service.pacs.SampleDicomGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 
 @Component
 public class DataSeedService {
+
+    private static final Logger log = LoggerFactory.getLogger(DataSeedService.class);
 
     private final PatientRepository patientRepository;
     private final EncounterRepository encounterRepository;
     private final ClinicalNoteRepository noteRepository;
     private final AppointmentRepository appointmentRepository;
-    private final ImagingStudyRepository imagingStudyRepository;
     private final RadiologyReportRepository radiologyReportRepository;
+    private final DicomService dicomService;
 
     public DataSeedService(
             PatientRepository patientRepository,
             EncounterRepository encounterRepository,
             ClinicalNoteRepository noteRepository,
             AppointmentRepository appointmentRepository,
-            ImagingStudyRepository imagingStudyRepository,
-            RadiologyReportRepository radiologyReportRepository) {
+            RadiologyReportRepository radiologyReportRepository,
+            DicomService dicomService) {
         this.patientRepository = patientRepository;
         this.encounterRepository = encounterRepository;
         this.noteRepository = noteRepository;
         this.appointmentRepository = appointmentRepository;
-        this.imagingStudyRepository = imagingStudyRepository;
         this.radiologyReportRepository = radiologyReportRepository;
+        this.dicomService = dicomService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
-    public void seed() {
+    public void onReady() {
+        seed();
+        try {
+            dicomService.backfillMissingStorage();
+        } catch (IOException e) {
+            log.warn("Failed to backfill missing DICOM files: {}", e.getMessage());
+        }
+    }
+
+    private void seed() {
         if (patientRepository.count() > 0) {
             return;
         }
@@ -84,18 +101,22 @@ public class DataSeedService {
         a2.setSource("phone_ai");
         appointmentRepository.save(a2);
 
-        ImagingStudy study = new ImagingStudy();
-        study.setPatientId(p2.getId());
-        study.setStudyUid("1.2.840.113619.2.55.3.604688776.969.1740000000.1");
-        study.setModality("CT");
-        study.setBodyPart("CHEST");
-        study.setDescription("胸部CT 造影なし");
-        study.setPerformedAt(now.minus(6, ChronoUnit.HOURS));
-        imagingStudyRepository.save(study);
+        Map<String, Object> studyMap;
+        try {
+            byte[] sampleDicom = SampleDicomGenerator.create(
+                    "1.2.840.113619.2.55.3.604688776.969.1740000000.1",
+                    "CT",
+                    "CHEST",
+                    "胸部CT 造影なし");
+            studyMap = dicomService.ingest(sampleDicom, p2.getId());
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to seed sample DICOM", e);
+        }
+        long studyId = ((Number) studyMap.get("id")).longValue();
 
         RadiologyReport report = new RadiologyReport();
         report.setPatientId(p2.getId());
-        report.setStudyId(study.getId());
+        report.setStudyId(studyId);
         report.setModality("CT");
         report.setReportText("""
                 【所見】
