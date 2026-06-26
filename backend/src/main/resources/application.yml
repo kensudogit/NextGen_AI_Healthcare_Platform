@@ -43,6 +43,7 @@ app:
   storage:
     local-path: ${DICOM_LOCAL_PATH:storage/dicom}
     use-s3: ${STORAGE_USE_S3:false}
+    pacs-export-path: ${PACS_EXPORT_PATH:}
   fhir:
     base-url: ${FHIR_BASE_URL:http://localhost:8010/fhir/R4}
 

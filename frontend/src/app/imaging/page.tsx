@@ -1,4 +1,5 @@
 import { api, apiUrl } from "@/lib/api";
+import { PacsExportImportForm } from "@/components/PacsExportImportForm";
 
 type Study = {
   id: number;
@@ -26,7 +27,8 @@ export default async function ImagingPage() {
   return (
     <>
       <h1 className="page-title">PACS / DICOM</h1>
-      <p className="page-desc">画像検査の一覧・プレビュー参照（DICOM アップロード対応）</p>
+      <p className="page-desc">画像検査の一覧・プレビュー参照（DICOM / PACS エクスポート対応）</p>
+      <PacsExportImportForm />
       {err && <p className="error">{err}</p>}
 
       <div className="grid grid-2">

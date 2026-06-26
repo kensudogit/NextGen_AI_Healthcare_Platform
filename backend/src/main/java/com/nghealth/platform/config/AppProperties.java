@@ -10,6 +10,6 @@ public record AppProperties(
         Storage storage,
         Fhir fhir
 ) {
-    public record Storage(String localPath, boolean useS3) {}
+    public record Storage(String localPath, boolean useS3, String pacsExportPath) {}
     public record Fhir(String baseUrl) {}
 }

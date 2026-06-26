@@ -8,15 +8,10 @@ import com.nghealth.platform.repository.PatientRepository;
 import com.nghealth.platform.service.storage.StorageService;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Tag;
-import org.dcm4che3.io.DicomInputStream;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -56,15 +51,24 @@ public class DicomService {
     public Map<String, Object> ingest(byte[] data, Long patientId) throws IOException {
         patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+        Attributes attrs = DicomAttributesReader.read(data);
+        return persistStudy(data, attrs, patientId, 1, null);
+    }
 
-        Attributes attrs;
-        try (DicomInputStream dis = new DicomInputStream(new ByteArrayInputStream(data))) {
-            attrs = dis.readDataset(-1, -1);
-        }
+    /** PACS エクスポートフォルダ取り込み用 */
+    public Map<String, Object> ingestFromExport(
+            byte[] data, Attributes attrs, Long patientId, int instanceCount, String bodyPartOverride) throws IOException {
+        return persistStudy(data, attrs, patientId, instanceCount, bodyPartOverride);
+    }
 
+    private Map<String, Object> persistStudy(
+            byte[] data, Attributes attrs, Long patientId, int instanceCount, String bodyPartOverride) throws IOException {
         String studyUid = attrs.getString(Tag.StudyInstanceUID, UUID.randomUUID().toString());
         String modality = attrs.getString(Tag.Modality, "OT");
-        String bodyPart = attrs.getString(Tag.BodyPartExamined);
+        String bodyPart = bodyPartOverride != null ? bodyPartOverride : attrs.getString(Tag.BodyPartExamined);
+        if (bodyPart == null || bodyPart.isBlank()) {
+            bodyPart = attrs.getString(Tag.SeriesDescription);
+        }
         String description = attrs.getString(Tag.StudyDescription);
         Instant performed = parseStudyDate(attrs.getString(Tag.StudyDate));
 
@@ -73,7 +77,7 @@ public class DicomService {
 
         String previewKey = storageService.previewKey(key);
         String previewPath = null;
-        byte[] preview = generatePreview(data);
+        byte[] preview = DicomPreviewGenerator.toPng(data);
         if (preview != null) {
             storageService.storePreview(preview, previewKey);
             previewPath = appProperties.storage().useS3() ? previewKey : storageService.localPath(previewKey).toString();
@@ -85,7 +89,7 @@ public class DicomService {
         study.setModality(modality);
         study.setBodyPart(bodyPart);
         study.setDescription(description);
-        study.setInstanceCount(1);
+        study.setInstanceCount(Math.max(1, instanceCount));
         study.setFilePath(stored);
         study.setPreviewPath(previewPath);
         study.setS3Key(appProperties.storage().useS3() ? key : null);
@@ -128,7 +132,7 @@ public class DicomService {
             String stored = storageService.storeDicom(dicom, key);
             String previewKey = storageService.previewKey(key);
             String previewPath = null;
-            byte[] preview = generatePreview(dicom);
+            byte[] preview = DicomPreviewGenerator.toPng(dicom);
             if (preview != null) {
                 storageService.storePreview(preview, previewKey);
                 previewPath = appProperties.storage().useS3()
@@ -194,35 +198,6 @@ public class DicomService {
             return d.atStartOfDay().toInstant(ZoneOffset.UTC);
         } catch (Exception e) {
             return Instant.now();
-        }
-    }
-
-    private byte[] generatePreview(byte[] dicom) {
-        try (DicomInputStream dis = new DicomInputStream(new ByteArrayInputStream(dicom))) {
-            Attributes attrs = dis.readDataset(-1, -1);
-            if (!attrs.containsValue(Tag.PixelData)) {
-                return null;
-            }
-            int rows = attrs.getInt(Tag.Rows, 0);
-            int cols = attrs.getInt(Tag.Columns, 0);
-            if (rows <= 0 || cols <= 0) {
-                return null;
-            }
-            byte[] pixels = attrs.getBytes(Tag.PixelData);
-            BufferedImage img = new BufferedImage(cols, rows, BufferedImage.TYPE_BYTE_GRAY);
-            int idx = 0;
-            for (int y = 0; y < rows; y++) {
-                for (int x = 0; x < cols && idx < pixels.length; x++, idx++) {
-                    int gray = pixels[idx] & 0xFF;
-                    int rgb = (gray << 16) | (gray << 8) | gray;
-                    img.setRGB(x, y, rgb);
-                }
-            }
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(img, "png", baos);
-            return baos.toByteArray();
-        } catch (Exception e) {
-            return null;
         }
     }
 }

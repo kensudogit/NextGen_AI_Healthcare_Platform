@@ -56,8 +56,10 @@ services:
       AWS_REGION: ap-northeast-1
       AWS_S3_BUCKET: nghealth-dicom
       FHIR_BASE_URL: http://localhost:8010/fhir/R4
+      PACS_EXPORT_PATH: /app/pacs-export
     volumes:
       - dicom_storage:/app/storage/dicom
+      - ./PACS_EXPORT_SAMPLE:/app/pacs-export:ro
     depends_on:
       postgres:
         condition: service_healthy
