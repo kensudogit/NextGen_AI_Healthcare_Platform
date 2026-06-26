@@ -85,6 +85,18 @@ AWS_S3_BUCKET=your-bucket
 
 Docker 開発環境では LocalStack が S3 をエミュレートします。
 
+## Railway デプロイ
+
+1. GitHub リポジトリを Railway に接続
+2. **PostgreSQL** プラグインを追加（`DATABASE_URL` が自動設定されます）
+3. 環境変数（任意）:
+   - `OPENAI_API_KEY`
+   - `CORS_ORIGINS` — フロントエンド URL
+   - `FHIR_BASE_URL` — `https://<your-app>.up.railway.app/fhir/R4`
+4. ルートの `Dockerfile` でバックエンドがビルドされます（`railway.toml` 参照）
+
+フロントエンドは別サービスとして `frontend/Dockerfile` を指定してデプロイしてください。
+
 ## レガシー
 
 Python/FastAPI 実装は `_legacy/python-backend/` に保管されています。
