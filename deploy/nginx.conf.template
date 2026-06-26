@@ -22,7 +22,8 @@ http {
     }
 
     server {
-        listen ${PORT};
+        listen ${PORT} default_server;
+        listen [::]:${PORT} default_server;
         server_name _;
 
         location /api/ {
