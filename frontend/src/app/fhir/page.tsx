@@ -69,7 +69,7 @@ export default async function FhirPage() {
                 <td>{ep.desc}</td>
                 <td>
                   <a href={ep.path.replace("{id}", "1")} target="_blank" rel="noreferrer">
-                    開く ↗
+                    JSON ↗
                   </a>
                 </td>
               </tr>

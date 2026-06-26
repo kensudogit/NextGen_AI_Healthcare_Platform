@@ -128,7 +128,14 @@ export default async function DashboardPage() {
         <ul style={{ listStyle: "none", fontSize: "0.875rem" }}>
           {Object.entries(stats!.integrations).map(([k, v]) => (
             <li key={k} style={{ marginBottom: "0.35rem" }}>
-              <strong>{k}</strong>: <code className="mono">{v}</code>
+              <strong>{k}</strong>:{" "}
+              {k === "fhir_base" ? (
+                <a href="/fhir" className="mono">
+                  {v}
+                </a>
+              ) : (
+                <code className="mono">{v}</code>
+              )}
             </li>
           ))}
         </ul>
