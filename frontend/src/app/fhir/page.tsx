@@ -34,7 +34,13 @@ export default async function FhirPage() {
   return (
     <>
       <h1 className="page-title">FHIR R4 API</h1>
-      <p className="page-desc">他システム連携用 HL7 FHIR REST エンドポイント</p>
+      <p className="page-desc">
+        他システム連携用 HL7 FHIR REST エンドポイント（ベース URL: <code className="mono">/fhir/R4</code>）
+      </p>
+      <p style={{ fontSize: "0.8rem", color: "var(--muted)", marginBottom: "1rem" }}>
+        ※ ポート番号（:8080）は不要です。サイドバーの「FHIR API」または{" "}
+        <code className="mono">/fhir</code> からこのページを開いてください。
+      </p>
       {err && <p className="error">{err}</p>}
 
       {meta && (

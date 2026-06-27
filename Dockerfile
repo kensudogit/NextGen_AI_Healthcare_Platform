@@ -63,6 +63,9 @@ http {
             proxy_set_header Host $host;
             proxy_set_header X-Forwarded-Proto $scheme;
         }
+        location = /fhir/ {
+            return 301 /fhir;
+        }
         location /swagger-ui {
             proxy_pass http://backend;
             proxy_set_header Host $host;
@@ -100,6 +103,11 @@ RAILWAY_PORT="${PORT:-8080}"
 BACKEND_PORT="${BACKEND_PORT:-8010}"
 FRONTEND_PORT="${FRONTEND_PORT:-3010}"
 mkdir -p /app/storage/dicom /tmp /var/log/nginx /var/lib/nginx
+if [ -n "$RAILWAY_PUBLIC_DOMAIN" ]; then
+  export FHIR_BASE_URL="https://${RAILWAY_PUBLIC_DOMAIN}/fhir/R4"
+  export CORS_ORIGINS="https://${RAILWAY_PUBLIC_DOMAIN}"
+  echo "Railway public URL: https://${RAILWAY_PUBLIC_DOMAIN}"
+fi
 echo "Starting backend on ${BACKEND_PORT}..."
 java -jar /app/app.jar --server.port="${BACKEND_PORT}" &
 BACKEND_PID=$!

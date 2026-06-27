@@ -130,7 +130,7 @@ public class FhirService {
         bundle.setTotal(resources.size());
         for (Resource res : resources) {
             Bundle.BundleEntryComponent entry = bundle.addEntry();
-            entry.setFullUrl(appProperties.fhir().baseUrl() + "/" + type + "/" + res.getIdElement().getIdPart());
+            entry.setFullUrl("/fhir/R4/" + type + "/" + res.getIdElement().getIdPart());
             entry.setResource(res);
         }
         return parser().encodeResourceToString(bundle);

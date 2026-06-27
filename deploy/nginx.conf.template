@@ -41,6 +41,10 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        location = /fhir/ {
+            return 301 /fhir;
+        }
+
         location /swagger-ui {
             proxy_pass http://backend;
             proxy_set_header Host $host;
