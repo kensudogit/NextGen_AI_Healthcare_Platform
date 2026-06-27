@@ -131,7 +131,7 @@ export default async function DashboardPage() {
               <strong>{k}</strong>:{" "}
               {k === "fhir_base" ? (
                 <a href="/fhir" className="mono">
-                  {v}
+                  {v} (UI: /fhir)
                 </a>
               ) : (
                 <code className="mono">{v}</code>

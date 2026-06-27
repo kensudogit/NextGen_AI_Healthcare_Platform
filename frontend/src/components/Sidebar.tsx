@@ -26,6 +26,7 @@ export default function Sidebar() {
           <Link
             key={n.href}
             href={n.href}
+            prefetch={false}
             className={`nav-link${path === n.href ? " active" : ""}`}
           >
             {n.label}
