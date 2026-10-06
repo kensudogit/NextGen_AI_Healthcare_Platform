@@ -4,6 +4,17 @@
 >
 > **Stack:** Java 21 · Spring Boot 3.4 · Next.js 15 · React 19 · TypeScript · PostgreSQL · FHIR R4 · HL7 v2 · DICOM · OpenAI · AWS S3
 
+
+## Portfolio Overview
+
+| | |
+|---|---|
+| **Problem** | Hospital data and workflows span EMR, imaging and interoperability standards that are difficult to integrate securely with AI. |
+| **Solution** | AI-assisted hospital platform integrating EMR, PACS/DICOM, HL7/FHIR, secure identity, cloud storage and clinical workflows. |
+| **Architecture** | Next.js UI → Spring Boot APIs → EMR/FHIR/HL7/PACS services → PostgreSQL/S3, protected by OAuth2/OIDC. |
+| **Differentiators** | FHIR R4 + HL7 v2 + DICOM in one platform, clinical AI workflows, Keycloak security and cloud-ready storage. |
+| **Stack** | Java 21 · Spring Boot 3.4 · Next.js 15 · PostgreSQL · FHIR R4 · HL7 v2 · DICOM · OpenAI · AWS S3 |
+
 AI統合型病院プラットフォーム — Java/Spring Boot バックエンド、React/Next.js フロント、OAuth2、DICOM/PACS、HL7/FHIR、OpenAI、AWS S3。
 
 ## 技術スタック
