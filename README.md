@@ -1,5 +1,9 @@
 # NextGen AI Healthcare Platform
 
+> **Healthcare AI / Interoperability Platform** — AI-assisted hospital platform integrating EMR, PACS/DICOM, HL7/FHIR, secure identity, cloud storage, and AI-powered clinical workflows.
+>
+> **Stack:** Java 21 · Spring Boot 3.4 · Next.js 15 · React 19 · TypeScript · PostgreSQL · FHIR R4 · HL7 v2 · DICOM · OpenAI · AWS S3
+
 AI統合型病院プラットフォーム — Java/Spring Boot バックエンド、React/Next.js フロント、OAuth2、DICOM/PACS、HL7/FHIR、OpenAI、AWS S3。
 
 ## 技術スタック
